@@ -51,7 +51,7 @@ app.get('/exit',async(req,res)=>{
     res.send({"message":"Browser Exited Successfully"});
 });
 
-const listener = app.listen(3000 || process.env.PORT, () => {
+const listener = app.listen(8888 || process.env.PORT, () => {
 
     setInterval(() => {
         for (x in url) {

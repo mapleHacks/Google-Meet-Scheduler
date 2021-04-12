@@ -95,7 +95,7 @@ class GoogleMeet {
             this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err){
-            notify(err.message);
+            this.notify(err.message);
         }
     }
     
@@ -110,22 +110,23 @@ class GoogleMeet {
                         '--disable-audio-output'
                     ],
             });
-            this.page = await browser.newPage()
+            this.page = await this.browser.newPage()
             await this.page.goto('https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin')
 
             // Login Start
-            await this.page.type("input#identifierId", email, {
+	    console.log(this.email,this.password)
+            await this.page.type("input#identifierId", this.email, {
                 delay: 0
             })
 
             await this.page.click("div#identifierNext")
-            await this.page.waitFor(7000)
-            await this.page.type("input.whsOnd.zHQkBf", password, {
+            await this.page.waitForTimeout(7000)
+            await this.page.type("input.whsOnd.zHQkBf", this.pass, {
                 delay: 0
             })
             await this.page.click("div#passwordNext")
-            await this,page.waitFor(5000)
-            let buf=await page.screenshot();
+            await this.page.waitForTimeout(5000)
+            let buf=await this.page.screenshot();
             this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err){
