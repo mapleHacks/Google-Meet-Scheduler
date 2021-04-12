@@ -1,10 +1,12 @@
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+const {Telegraf} = require('telegraf');
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 puppeteer.use(StealthPlugin())
 
 class GoogleMeet {
-    constructor(email, pass, head, strict, bot) {
+    constructor(email, pass, head, strict) {
         this.email = email;
         this.pass = pass;
         this.head = head;
@@ -13,8 +15,8 @@ class GoogleMeet {
         this.page;
     }
     
-    async notify(msg){
-        bot.telegram.sendMessage(process.env.CHAT_ID,msg);
+    notify = (msg)=>{
+        this.bot.telegram.sendMessage(process.env.CHAT_ID,msg);
     }
     
     async schedule(url) {
@@ -54,14 +56,14 @@ class GoogleMeet {
             //Video Check
             try {
                 await this.page.click("div.IYwVEf.HotEze.uB7U9e.nAZzG")
-            } catch () {}
+            } catch{}
             
             await this.page.waitForTimeout(1000);
             
             //Audio Check
             try {
                 await this.page.click("div.IYwVEf.HotEze.nAZzG");
-            } catch () {}
+            } catch{}
             
             //Verify Video And Audio Are Stopped
             if (this.strict) {
@@ -69,28 +71,28 @@ class GoogleMeet {
                 let video = await this.page.evaluate('document.querySelectorAll("div.sUZ4id")[1].children[0].getAttribute("data-is-muted")');
 
                 if (audio === "false" || video === "false") {
-                    notify ("Unable To Join, Some Audio/Video Error Occurred");
+                    this.notify ("Unable To Join, Some Audio/Video Error Occurred");
                     return;
                 }
-                notify("Joining Meeting");
+                this.notify("Joining Meeting");
             }
 
             await this.page.waitForTimeout(1000);
             await this.page.click("span.NPEfkd.RveJvd.snByac");
             await this.page.waitForTimeout(4000);
             let buf = await this.page.screenshot();
-            bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
+            this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err) {
-            notify(err.message);
-            end();
+            this.notify(err.message);
+            this.end();
         }
     }
     
     async getScreenshot(){
         try{
             let buf = await this.page.screenshot();
-            bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
+            this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err){
             notify(err.message);
@@ -124,11 +126,11 @@ class GoogleMeet {
             await this.page.click("div#passwordNext")
             await this,page.waitFor(5000)
             let buf=await page.screenshot();
-            bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
+            this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err){
-            notify(err.message);
-            end();
+            this.notify(err.message);
+            this.end();
         }
     }
 
@@ -136,9 +138,7 @@ class GoogleMeet {
         try{
             await this.browser.close();
         }
-        catch(){
-            notify("No Window Open");
-        }
+        catch{}
     }
 }
 

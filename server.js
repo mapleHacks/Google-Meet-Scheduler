@@ -3,8 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const GoogleMeet = require('./google-meet');
-const {Telegraf} = require('telegraf');
-const bot = new Telegraf(process.env.BOT_TOKEN);
+
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -19,7 +18,7 @@ let password = process.env.PASSWORD;
 let head = true;
 let strict = true;
 
-let obj = new GoogleMeet(email, password, head, strict, bot);
+let obj = new GoogleMeet(email, password, head, strict);
 
 //Cache Store
 let url = {};
@@ -45,12 +44,12 @@ app.get('/signin',async(req,res)=>{
 app.get('/screenshot',async(req,res)=>{
     obj.getScreenshot();
     res.send({"message":"Screenshot Request Initiated"});
-}
+});
 
 app.get('/exit',async(req,res)=>{
     obj.end();
     res.send({"message":"Browser Exited Successfully"});
-}
+});
 
 const listener = app.listen(3000 || process.env.PORT, () => {
 
@@ -67,7 +66,7 @@ const listener = app.listen(3000 || process.env.PORT, () => {
                 delete url[x]
             }
         }
-    }, 1000)
+    }, 1000);
 
     console.log(`App Listening On Port ${listener.address().port}`);
 })
