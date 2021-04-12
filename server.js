@@ -1,9 +1,10 @@
-require('dotenv').config()
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-// const { randomBytes } = require('crypto');
 const GoogleMeet = require('./google-meet');
+const {Telegraf} = require('telegraf');
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -18,10 +19,9 @@ let password = process.env.PASSWORD;
 let head = true;
 let strict = true;
 
-obj = new GoogleMeet(email, password, head, strict);
+let obj = new GoogleMeet(email, password, head, strict, bot);
 
-// cache store
-// can be moved to db
+//Cache Store
 let url = {};
 let ind = 0;
 
@@ -37,23 +37,37 @@ app.post('/postlink', (req, res) => {
     res.redirect("/");
 });
 
+app.get('/signin',async(req,res)=>{
+    obj.getSignInScreenshot();
+    res.send({"message":"Sign In Screenshot Request Initiated"});
+});
+
+app.get('/screenshot',async(req,res)=>{
+    obj.getScreenshot();
+    res.send({"message":"Screenshot Request Initiated"});
+}
+
+app.get('/exit',async(req,res)=>{
+    obj.end();
+    res.send({"message":"Browser Exited Successfully"});
+}
+
 const listener = app.listen(3000 || process.env.PORT, () => {
 
     setInterval(() => {
-        // console.log(url)
         for (x in url) {
             if (url[x].startTime < Date.now()) {
-                console.log(`Request for joining meet ${url[x].url}`);
+                obj.notify(`Request For Joining Meet ${url[x].url}`);
                 obj.schedule(url[x].url);
                 url[x].startTime = url[x].endTime + 2000;
             }
             if (url[x].endTime < Date.now()) {
-                console.log(`Request for leaving meet ${url[x].url}`);
+                obj.notify(`Request For Leaving Meet ${url[x].url}`);
                 obj.end();
                 delete url[x]
             }
         }
     }, 1000)
 
-    console.log(`App listening on port ${listener.address().port}`)
+    console.log(`App Listening On Port ${listener.address().port}`);
 })
