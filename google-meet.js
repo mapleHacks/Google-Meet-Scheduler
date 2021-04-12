@@ -1,21 +1,24 @@
-// const puppeteer = require('puppeteer');
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 
 puppeteer.use(StealthPlugin())
 
 class GoogleMeet {
-    constructor(email, pass, head, strict) {
+    constructor(email, pass, head, strict, bot) {
         this.email = email;
         this.pass = pass;
         this.head = head;
         this.strict = strict;
-        this.browser;
+        this.bot = bot;
         this.page;
     }
+    
+    async notify(msg){
+        bot.telegram.sendMessage(process.env.CHAT_ID,msg);
+    }
+    
     async schedule(url) {
         try {
-            // Open browser
             this.browser = await puppeteer.launch({
                 headless: this.head,
                 args: [
@@ -25,69 +28,118 @@ class GoogleMeet {
                     '--disable-audio-output'
                 ],
             });
-            this.page = await this.browser.newPage()
-            await this.page.goto('https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin')
+            
+            this.page = await this.browser.newPage();
+            await this.page.goto('https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin');
 
-            // Login Start
             await this.page.type("input#identifierId", this.email, {
                 delay: 0
-            })
+            });
+            
             await this.page.click("div#identifierNext")
 
-            await this.page.waitForTimeout(7000)
+            await this.page.waitForTimeout(7000);
 
             await this.page.type("input[name=password]", this.pass, {
                 delay: 0
             })
-            await this.page.click("div#passwordNext")
+            await this.page.click("div#passwordNext");
 
-            await this.page.waitForTimeout(5000)
+            await this.page.waitForTimeout(5000);
 
-            await this.page.goto(url)
-
-            console.log("inside meet page")
-            await this.page.waitForTimeout(7000)
+            await this.page.goto(url);
+            
+            await this.page.waitForTimeout(7000);
+            
+            //Video Check
             try {
                 await this.page.click("div.IYwVEf.HotEze.uB7U9e.nAZzG")
-            } catch (e) {
-                console.log ("\naudio seems to disabled already")
-                console.log (e);
-            }
-            await this.page.waitForTimeout(1000)
+            } catch () {}
+            
+            await this.page.waitForTimeout(1000);
+            
+            //Audio Check
             try {
-                await this.page.click("div.IYwVEf.HotEze.nAZzG")
-            } catch (e) {
-                console.log ("\nvideo seems to be disabled already")
-                console.log (e)
-            }
-
-            // sanity check (connect only if both audio and video are muted) :P
+                await this.page.click("div.IYwVEf.HotEze.nAZzG");
+            } catch () {}
+            
+            //Verify Video And Audio Are Stopped
             if (this.strict) {
-                let audio = await this.page.evaluate('document.querySelectorAll("div.sUZ4id")[0].children[0].getAttribute("data-is-muted")')
-                let video = await this.page.evaluate('document.querySelectorAll("div.sUZ4id")[1].children[0].getAttribute("data-is-muted")')
+                let audio = await this.page.evaluate('document.querySelectorAll("div.sUZ4id")[0].children[0].getAttribute("data-is-muted")');
+                let video = await this.page.evaluate('document.querySelectorAll("div.sUZ4id")[1].children[0].getAttribute("data-is-muted")');
 
                 if (audio === "false" || video === "false") {
-                    console.log ("Not joining meeting. We couldn't disable either audio or video from the device.\nYou may try again.")
-                    return
+                    notify ("Unable To Join, Some Audio/Video Error Occurred");
+                    return;
                 }
-                console.log ("all set!!")
+                notify("Joining Meeting");
             }
 
-            await this.page.waitForTimeout(1000)
-            console.log('clicking on join')
-            await this.page.click("span.NPEfkd.RveJvd.snByac")
-
-            console.log("Successfully joined/Sent join request")
+            await this.page.waitForTimeout(1000);
+            await this.page.click("span.NPEfkd.RveJvd.snByac");
+            await this.page.waitForTimeout(4000);
+            let buf = await this.page.screenshot();
+            bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err) {
-            console.log(err)
+            notify(err.message);
+            end();
+        }
+    }
+    
+    async getScreenshot(){
+        try{
+            let buf = await this.page.screenshot();
+            bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
+        }
+        catch(err){
+            notify(err.message);
+        }
+    }
+    
+    async getSignInScreenshot(){
+        try{
+            this.browser = await puppeteer.launch({
+                    headless: this.head,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--use-fake-ui-for-media-stream',
+                        '--disable-audio-output'
+                    ],
+            });
+            this.page = await browser.newPage()
+            await this.page.goto('https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin')
+
+            // Login Start
+            await this.page.type("input#identifierId", email, {
+                delay: 0
+            })
+
+            await this.page.click("div#identifierNext")
+            await this.page.waitFor(7000)
+            await this.page.type("input.whsOnd.zHQkBf", password, {
+                delay: 0
+            })
+            await this.page.click("div#passwordNext")
+            await this,page.waitFor(5000)
+            let buf=await page.screenshot();
+            bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
+        }
+        catch(err){
+            notify(err.message);
+            end();
         }
     }
 
     async end() {
-        await this.browser.close();
+        try{
+            await this.browser.close();
+        }
+        catch(){
+            notify("No Window Open");
+        }
     }
 }
 
 module.exports = GoogleMeet;
-
