@@ -1,0 +1,7 @@
+{
+  "name": "Google Meet Scheduler",
+  "description": "Schedule Your Google Meet Class, That will be attended by a bot",
+  "repository": "https://github.com/mapleHacks/Google-Meet-Scheduler",
+  "logo": "https://camo.githubusercontent.com/ce3c2547148fe105c917b1db815e9b363d1903ca5d31074d564295868650ddc0/68747470733a2f2f63646e2e73686f706966792e636f6d2f732f66696c65732f312f323537392f373037322f61727469636c65732f7075707065746565722d636f7665725f31323030783633302e706e673f763d31353231383132343637",
+  "keywords": ["node", "express"]
+}
