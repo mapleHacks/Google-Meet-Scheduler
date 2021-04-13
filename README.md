@@ -2,6 +2,9 @@
 <h2 align="center">Google Meet Scheduler</h2>
 <p align="center"><b>Join's meet link for you 😴</b></p>
 
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 #### Bot for scheduling and entering google meet sessions automatically.
 
 ### Installation Guide
