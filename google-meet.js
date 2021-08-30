@@ -81,8 +81,8 @@ class GoogleMeet {
             
             //Verify Video And Audio Are Stopped
             if (this.strict) {
-                let audio = await newPage.evaluate('document.querySelectorAll("div.sUZ4id")[0].children[0].getAttribute("data-is-muted")');
-                let video = await newPage.evaluate('document.querySelectorAll("div.sUZ4id")[1].children[0].getAttribute("data-is-muted")');
+                let audio = await newPage.evaluate('document.querySelectorAll("div.GKGgdd")[0].children[0].getAttribute("data-is-muted")');
+                let video = await newPage.evaluate('document.querySelectorAll("div.GKGgdd")[1].children[0].getAttribute("data-is-muted")');
 
                 if (audio === "false" || video === "false") {
                     this.notify ("Unable To Join, Some Audio/Video Error Occurred");
