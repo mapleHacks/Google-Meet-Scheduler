@@ -53,12 +53,13 @@ class GoogleMeet {
 	}
     
     async schedule(url,meetID) {
+        const newPage;
         try {
             if (!this.browserIsActive) {
 				await this.createBrowser();
 			}
             
-            const newPage = await this.browser.newPage();
+            newPage = await this.browser.newPage();
 
             if (!this.browserIsActive) {
 				await this.accountLogin(newPage);
@@ -100,6 +101,10 @@ class GoogleMeet {
             this.browserIsActive = true;
         }
         catch(err) {
+            if(newPage){
+                let buf = await newPage.screenshot();
+                this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
+            }
             this.notify(err.message);
             this.browserIsActive = false;
             return false;
