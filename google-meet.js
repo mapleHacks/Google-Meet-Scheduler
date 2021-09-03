@@ -83,13 +83,15 @@ class GoogleMeet {
             
             //Verify Video And Audio Are Stopped
             if (this.strict) {
-                let audio = await newPage.evaluate('document.querySelectorAll("div.GKGgdd")[0].children[0].getAttribute("data-is-muted")');
-                let video = await newPage.evaluate('document.querySelectorAll("div.GKGgdd")[1].children[0].getAttribute("data-is-muted")');
+                try{
+                    let audio = await newPage.evaluate('document.querySelectorAll("div.GKGgdd")[0].children[0].getAttribute("data-is-muted")');
+                    let video = await newPage.evaluate('document.querySelectorAll("div.GKGgdd")[1].children[0].getAttribute("data-is-muted")');
 
-                if (audio === "false" || video === "false") {
-                    this.notify ("Unable To Join, Some Audio/Video Error Occurred");
-                    return;
+                    if (audio === "false" || video === "false") {
+                        this.notify ("Audio/Video Error Occurred");
+                    }
                 }
+                catch{}
                 this.notify("Joining Meeting");
             }
 
