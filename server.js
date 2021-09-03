@@ -70,6 +70,11 @@ app.get('/screenshot',auth,async(req,res)=>{
     res.send({"message":"Screenshot Request Initiated"});
 });
 
+app.get('/kill-browser',auth,async(req,res)=>{
+    meet.killChrome();
+    res.send({ 'message':'Requested to kill chrome' });
+});
+
 app.get('/delete/:id',auth,async(req,res)=>{
     let x = req.query.id;
     if(!url[x]) return {"message":"No Meeting ID Found"};

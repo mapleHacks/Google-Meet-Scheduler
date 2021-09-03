@@ -1,11 +1,13 @@
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const { Telegraf } = require('telegraf');
+const { exec } = require("child_process");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 puppeteer.use(StealthPlugin())
 
 class GoogleMeet {
+
     constructor(email, pass, head, strict) {
         this.email = email;
         this.pass = pass;
@@ -13,7 +15,7 @@ class GoogleMeet {
         this.strict = strict;
         this.bot = bot;
         this.browserIsActive = false;
-        newPage = {};
+        this.currentPage = undefined;
     }
     
     async createBrowser() {
@@ -53,7 +55,7 @@ class GoogleMeet {
 	}
     
     async schedule(url,meetID) {
-        const newPage;
+        let newPage;
         try {
             if (!this.browserIsActive) {
 				await this.createBrowser();
@@ -61,13 +63,12 @@ class GoogleMeet {
             
             newPage = await this.browser.newPage();
 
-            if (!this.browserIsActive) {
-				await this.accountLogin(newPage);
-			}
+			await this.accountLogin(newPage);
 
             await newPage.waitForTimeout(7000);
             
             await newPage.goto(url);
+
             //Video Check
             try {
                 await newPage.click("div.IYwVEf.HotEze.uB7U9e.nAZzG")
@@ -93,6 +94,7 @@ class GoogleMeet {
             }
 
             this.page[meetID] = newPage;
+            this.currentPage = newPage;
             await newPage.waitForTimeout(1000);
             await newPage.click("span.NPEfkd.RveJvd.snByac");
             await newPage.waitForTimeout(4000);
@@ -113,7 +115,7 @@ class GoogleMeet {
     
     async getScreenshot(){
         try{
-            let buf = await newPage.screenshot();
+            let buf = await this.currentPage.screenshot();
             this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
         catch(err){
@@ -128,7 +130,7 @@ class GoogleMeet {
             
             const newPage = await this.browser.newPage();
 
-            if (!this.browserIsActive) 
+            if (!this.browserIsActive)
 				await this.accountLogin(newPage);
 
             await newPage.waitForTimeout(7000);
@@ -136,12 +138,24 @@ class GoogleMeet {
             let buf = await newPage.screenshot();
             this.bot.telegram.sendPhoto(process.env.CHAT_ID,{source:buf});
         }
+
         catch(err){
             this.notify(err.message);
+            this.browserIsActive=false;
             this.closeBrowser()
         }
     }
 
+    async killChrome(){
+        exec("pkill chrome", (error, stdout, stderr) => {
+            if (error) {
+                return;
+            }
+            if (stderr) {
+                return;
+            }
+        });
+    }
 
     async closeTab(ind) {
 		await this.page[ind].close();
@@ -149,8 +163,8 @@ class GoogleMeet {
 
     async closeBrowser() {
         try{
-            await this.browser.close();
             this.browserIsActive = false;
+            await this.browser.close();
         }
         catch{}
     }
