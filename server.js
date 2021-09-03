@@ -57,7 +57,7 @@ app.post('/postlink',auth, (req, res) => {
     url[ind].url = req.body.url;
     url[ind].startTime = Date.parse(req.body.startDate);
     url[ind].endTime = Date.parse(req.body.endDate);
-    res.redirect("/");
+    res.redirect("/dashboard");
 });
 
 app.get('/signin',auth,async(req,res)=>{

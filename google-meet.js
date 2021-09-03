@@ -16,6 +16,7 @@ class GoogleMeet {
         this.bot = bot;
         this.browserIsActive = false;
         this.currentPage = undefined;
+        this.page = {}
     }
     
     async createBrowser() {
